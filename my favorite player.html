@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Favorite Player</title>
+    <style>
+        :root { --primary: #00695c; --secondary: #b2dfdb; --accent: #fbc02d; --text-dark: #212121; --white: #ffffff; --success: #43a047; --error: #e53935; --blue-select: #2196f3; }
+        body { font-family: 'Calibri', sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; direction: rtl; color: var(--text-dark); }
+        .container { max-width: 1100px; margin: 0 auto; background: var(--white); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; position: relative; }
+        header { background: var(--primary); padding: 20px; text-align: center; color: var(--white); position: relative; }
+        .main-title { font-weight: bold; font-size: 3rem; margin: 0; cursor: pointer; position: relative; display: inline-block; }
+        .main-title:hover::after { content: attr(data-trans); position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 5px 15px; border-radius: 5px; font-size: 1rem; white-space: nowrap; z-index: 100; }
+        
+        /* Logo Style */
+        .school-logo { position: absolute; top: 15px; left: 20px; width: 70px; height: auto; z-index: 200; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); background: white; padding: 2px; }
+
+        /* Tabs Styling */
+        .tabs { display: flex; background: #004d40; padding: 0; margin: 0; list-style: none; overflow-x: auto; direction: ltr; }
+        .tab-btn { flex: 1; padding: 15px; background: none; border: none; color: rgba(255,255,255,0.8); cursor: pointer; font-family: inherit; font-weight: 700; font-size: 1rem; transition: all 0.3s; white-space: nowrap; }
+        .tab-btn.active { background: var(--white); color: var(--primary); border-bottom: 5px solid var(--accent); }
+        .tab-btn:hover { background: rgba(255,255,255,0.1); }
+
+        .content-area { display: flex; flex-direction: column; gap: 20px; padding: 20px; }
+        @media (min-width: 992px) { .content-area { flex-direction: row; } }
+        
+        /* Text Panel */
+        .text-panel { flex: 2; padding: 30px; background: #fff8e1; border-radius: 15px; border: 2px solid #ffe082; line-height: 2.5; position: relative; min-height: 300px; }
+        .arabic-text { font-size: 30px; font-weight: bold; text-align: justify; direction: rtl; }
+        .english-text { font-family: 'Times New Roman', Times, serif; font-size: 22px; font-weight: normal; text-align: left; direction: ltr; line-height: 2.2; color: #333; }
+        
+        .word { position: relative; cursor: pointer; padding: 2px 5px; border-radius: 5px; transition: background 0.2s; display: inline-block; }
+        .word:hover { background-color: rgba(0,0,0,0.05); }
+        
+        /* Tooltip */
+        .word:hover::before { content: attr(data-trans); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background-color: #37474f; color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 18px; white-space: nowrap; z-index: 10; pointer-events: none; display: none; }
+        .word:hover::after { content: ''; position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); border-width: 6px; border-style: solid; border-color: #37474f transparent transparent transparent; display: none; }
+        .word:hover::before, .word:hover::after { display: block; }
+        .no-trans .word:hover::before, .word.no-tip:hover::before,
+        .no-trans .word:hover::after, .word.no-tip:hover::after { display: none !important; }
+        
+        /* States */
+        .word.highlight-read { background-color: var(--accent); color: #000; box-shadow: 0 0 10px rgba(251, 192, 45, 0.5); transition: background 0.1s; }
+        .word.found { color: white !important; animation: pop 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .word.wrong { animation: shake 0.5s; background-color: var(--error) !important; color: white; }
+        .word.selected-vocab { background-color: var(--blue-select) !important; color: white !important; box-shadow: 0 2px 5px rgba(33, 150, 243, 0.4); }
+        
+        /* Evidence Highlight Transition */
+        .word.evidence-active { transition: background-color 0.3s ease; border-radius: 4px; }
+
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(5px);} 75% {transform: translateX(-5px);} }
+        @keyframes pop { 0% {transform: scale(1);} 50% {transform: scale(1.2);} 100% {transform: scale(1);} }
+
+        /* Control Panel */
+        .control-panel { flex: 1.2; background: #fafafa; padding: 20px; border-radius: 15px; border: 1px solid #eee; min-height: 400px; direction: ltr; display: flex; flex-direction: column; }
+        .panel-header { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 10px; border-bottom: 3px solid var(--accent); padding-bottom: 10px; display: inline-block; }
+        .panel-desc { font-size: 1rem; color: #666; margin-bottom: 15px; }
+        
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; margin: 5px 0; width: 100%; }
+        .btn:hover { background: #004d40; transform: translateY(-2px); }
+        
+        .speed-group { display: flex; gap: 10px; margin-top: 15px; background: white; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
+        .speed-btn { flex: 1; padding: 8px; border: 2px solid var(--secondary); background: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: inherit; }
+        .speed-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .task-item { background: white; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 2px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; position: relative; direction: rtl; }
+        .task-item span { margin-left: 10px; }
+        .task-item:hover { transform: translateX(5px); background: #f0f0f0; }
+        .task-item.active { border-width: 3px; background: #e0f7fa; border-color: var(--primary); }
+        .task-item.completed { opacity: 0.7; pointer-events: none; background: #e8f5e9; border-color: #4caf50; }
+        .color-dot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; margin-left: 10px; }
+
+        /* Quiz Styles */
+        .quiz-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: right; direction: rtl; border: 2px solid transparent; transition: border-color 0.3s; }
+        
+        .quiz-question { font-weight: 700; color: var(--primary); margin-bottom: 10px; font-size: 1.3rem; position: relative; cursor: pointer; display: inline-block; width: 100%; }
+        /* Question Tooltip */
+        .quiz-question:hover::before { content: attr(data-trans); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #455a64; color: #fff; padding: 5px 12px; border-radius: 5px; font-size: 1rem; white-space: nowrap; pointer-events: none; z-index: 20; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-family: 'Calibri', sans-serif; }
+        .quiz-question:hover::after { content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); border-width: 6px; border-style: solid; border-color: #455a64 transparent transparent transparent; margin-bottom: -4px; }
+        
+        .quiz-options label { display: block; padding: 10px; margin: 5px 0; background: #f9f9f9; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 1.1rem; border: 1px solid #eee; }
+        .quiz-options label:hover { background: #e0f2f1; }
+        .quiz-options input { margin-left: 10px; }
+        
+        /* Flashcards Styling */
+        .flashcard-container { width: 60%; max-width: 350px; height: 180px; perspective: 1000px; margin: 15px auto 5px auto; display: none; }
+        .flashcard-container.active { display: block; }
+        .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 3px solid var(--primary); background: white; padding: 10px; box-sizing: border-box; }
+        .card-front { background: #f0fdfa; border-color: var(--primary); }
+        .card-back { background: #fffcf0; transform: rotateY(180deg); border-color: var(--accent); }
+        .card-text { font-size: 3.5rem; font-weight: bold; color: var(--primary); margin-bottom: 5px; line-height: 1.1; }
+        .card-trans { font-size: 1.8rem; color: #333; font-weight: bold; }
+        .card-controls { display: flex; justify-content: space-between; }
+        .empty-state { text-align: center; padding: 40px; color: #777; font-size: 1.2rem; }
+
+        /* Score Modal */
+        .final-score-modal { margin-top: 20px; padding: 30px; background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); text-align: center; display: none; animation: pop 0.5s ease; border: 2px solid var(--primary); }
+        .score-number { font-size: 4rem; font-weight: 900; display: block; margin: 15px 0; text-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+        .score-text { font-size: 1.5rem; margin-bottom: 10px; font-weight: bold; }
+
+        /* Find More Message */
+        .find-more-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(33, 33, 33, 0.9); color: white; padding: 15px 30px; border-radius: 50px; font-size: 1.5rem; font-weight: bold; font-family: 'Calibri', sans-serif; display: none; z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); pointer-events: none; animation: fadeInOut 2s forwards; }
+        @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, -40%); } 15% { opacity: 1; transform: translate(-50%, -50%); } 85% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -60%); } }
+
+        /* Quiz Score Header */
+        .quiz-score-header { background: #004d40; color: white; padding: 10px; border-radius: 8px; text-align: center; font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; direction: ltr; }
+
+        /* Listening Icon */
+        .listening-icon { font-size: 80px; color: var(--primary); margin: 5px auto; display: block; text-align: center; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* === NEW: Force black text in all tabs except Reading === */
+        .all-black .word { color: #000 !important; }
+
+        /* === NEW: Pending selection highlight for Comp Quiz extract === */
+        .pending-select { outline: 2px dashed #9e9e9e; }
+
+        /* === NEW: Recording UI === */
+        .recording-section {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .recording-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            background: #eceff1;
+            color: #37474f;
+        }
+        .status-badge.live { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    image.jpg
+    <header>
+        <h1 class="main-title" data-trans="My Favorite Player">لاعبي المفضل</h1>
+    </header>
+
+    <ul class="tabs">
+        <li><button class="tab-btn active" onclick="switchTab('reading')">Reading</button></li>
+        <li><button class="tab-btn" onclick="switchTab('select')">New vocabulary</button></li>
+        <li><button class="tab-btn" onclick="switchTab('flashcards')">Flashcards</button></li>
+        <li><button class="tab-btn" onclick="switchTab('vocab')">Quiz E-A</button></li>
+        <li><button class="tab-btn" onclick="switchTab('vocab_ar_en')">Quiz A-E</button></li>
+        <li><button class="tab-btn" onclick="switchTab('extract')">Extract</button></li>
+        <li><button class="tab-btn" onclick="switchTab('comprehension')">Comprehension</button></li>
+        <li><button class="tab-btn" onclick="switchTab('comp_quiz')">Comprehension Quiz</button></li>
+        <li><button class="tab-btn" onclick="switchTab('listening')">Listening Quiz</button></li>
+    </ul>
+
+    <div class="content-area">
+        <div class="text-panel" id="textPanel">
+            <div id="arabicContent" class="arabic-text"></div>
+        </div>
+        <div class="control-panel" id="controlPanel"></div>
+    </div>
+</div>
+
+<div id="findMoreMsg" class="find-more-msg">Find more</div>
+
+<script>
+    const textData = [
+        { w: "أَوَدُّ", t: "I would like", type: "verb", color: "#43a047" },
+        { w: "أَنْ", t: "to", type: "particle", color: "#43a047" },
+        { w: "أُخْبِرَكُمْ", t: "tell you", type: "verb", color: "#43a047" },
+        { w: "أَنَّ", t: "that", type: "particle", color: "#43a047" },
+        { w: "الرِّيَاضَةَ", t: "sports", type: "singular_sport", color: "" },
+        { w: "تَجْعَلُنِي", t: "make me", type: "verb present", color: "" },
+        { w: "أَشْعُرُ", t: "feel", type: "verb present", color: "" },
+        { w: "بِالْمُتْعَةِ", t: "pleasure", type: "noun", color: "" },
+        { w: "وَذَلِكَ", t: "and that is", type: "" },
+        { w: "عِنْدَمَا", t: "when", type: "" },
+        { w: "أُشَاهِدُ", t: "I watch", type: "verb present" },
+        { w: "الدَّوْرِي", t: "the League", type: "noun" },
+        { w: "الْإِنْجِلِيزِيَّ،", t: "English", type: "adj" },
+        { w: "وَ", t: "and", type: "" },
+        { w: "خَاصَةً", t: "especially", type: "" },
+        { w: "مُبَارَيَاتِ", t: "the matches of", type: "noun plural_match" },
+        { w: "نَادِي", t: "club", type: "noun" },
+        { w: "لِيفَرْبُول.", t: "Liverpool.", type: "proper" },
+        { w: "أُشَجِّعُ", t: "I support", type: "verb present" },
+        { w: "فَرِيقَ", t: "the team", type: "noun" },
+        { w: "لِيفَرْبُول", t: "Liverpool", type: "proper" },
+        { w: "لِأَنَّهُ", t: "because it is", type: "connector", color: "#e53935" },
+        { w: "فَرِيقٌ", t: "a team", type: "noun" },
+        { w: "قَوِيٌّ", t: "strong", type: "adj" },
+        { w: "وَلَهُ", t: "and has", type: "" },
+        { w: "تَارِيخٌ", t: "a history", type: "noun" },
+        { w: "كَبِيرٌ", t: "great", type: "adj" },
+        { w: "فِي", t: "in", type: "" },
+        { w: "الْبُطُولَاتِ.", t: "the championships.", type: "noun plural_champ" },
+        { w: "أُضِيفُ", t: "I add", type: "verb present", color: "#43a047" },
+        { w: "أَنِّي", t: "that I", type: "", color: "#43a047" },
+        { w: "أُشَجِّعُ", t: "support", type: "verb present" },
+        { w: "أَشْهَرَ", t: "the most famous", type: "superlative" },
+        { w: "لَاعِبٍ", t: "player", type: "singular" },
+        { w: "فِي", t: "in", type: "" },
+        { w: "إِنْجِلْتِرَا", t: "England", type: "proper" },
+        { w: "-", t: "-", type: "" },
+        { w: "مُحَمَّد", t: "Mohamed", type: "proper" },
+        { w: "صَلَاح", t: "Salah", type: "proper" },
+        { w: "-", t: "-", type: "" },
+        { w: "لِأَنَّهُ", t: "because he is", type: "connector", color: "#e53935" },
+        { w: "لَاعِبٌ", t: "a player", type: "singular" },
+        { w: "نَشِيطٌ", t: "active", type: "adj" },
+        { w: "و مَوْهُوبٌ،", t: "and talented,", type: "adj" },
+        { w: "كَمَا", t: "also", type: "connector", color: "#e53935" },
+        { w: "أَحْرَزَ", t: "he scored", type: "verb past synonym_score" },
+        { w: "الْكَثِيرَ", t: "many", type: "" },
+        { w: "مِنَ", t: "of", type: "" },
+        { w: "الْأَهْدَافِ", t: "goals", type: "noun plural_goal" },
+        { w: "فِي", t: "in", type: "" },
+        { w: "مُبَارَيَاتِهِ.", t: "his matches.", type: "noun plural_match" },
+        { w: "فِي", t: "In", type: "", color: "#43a047" },
+        { w: "رَأْيِي،", t: "my opinion,", type: "", color: "#43a047" },
+        { w: "اللَّاعِبُ", t: "the player", type: "singular" },
+        { w: "مُحَمَّد", t: "Mohamed", type: "proper" },
+        { w: "صَلَاح", t: "Salah", type: "proper" },
+        { w: "أَسْرَعُ", t: "is the fastest", type: "superlative" },
+        { w: "لَاعِبٍ", t: "player", type: "singular" },
+        { w: "فِي", t: "in", type: "" },
+        { w: "الْعَالَمِ،", t: "the world,", type: "noun" },
+        { w: "وَأَرْجُو أنْ أُصْبِحَ مِثْلَهُ يَوْمًا مَا", t: "and I hope", type: "wish" },
+        { w: "أُصْبِحَ", t: "become", type: "verb" },
+        { w: "مِثْلَهُ", t: "like him", type: "" },
+        { w: "يَوْمًا", t: "one", type: "" },
+        { w: "مَا.", t: "day.", type: "" }
+    ];
+
+    // UPDATED Data for the Comprehension Quiz tab
+    const quizTextData = [
+        { w: "مِمَّا", t: "From what", type: "" },
+        { w: "لَا", t: "no", type: "" },
+        { w: "شَكَّ", t: "doubt", type: "" },
+        { w: "فِيهِ", t: "in it", type: "" },
+        { w: "أَنِّي", t: "that I", type: "" },
+        { w: "أُحِبُّ", t: "I love", type: "verb_present" },
+        { w: "كُرَةَ", t: "football", type: "noun" },
+        { w: "الْقَدَمِ", t: "(ball)", type: "noun" },
+        { w: "كَثِيرًا،", t: "very much,", type: "adv" },
+        { w: "حَيْثُ", t: "since", type: "connector" },
+        { w: "إِنَّ", t: "that", type: "" },
+        { w: "لَاعِبِي", t: "My player", type: "noun" },
+        { w: "الْمُفَضَّلَ", t: "favorite", type: "adj" },
+        { w: "هُوَ", t: "is", type: "" },
+        { w: "كِرِيسْتِيَانُو", t: "Cristiano", type: "proper" },
+        { w: "رُونَالْدُو.", t: "Ronaldo.", type: "proper" },
+        { w: "يَلْعَبُ", t: "He plays", type: "verb_present" },
+        { w: "كِرِيسْتِيَانُو", t: "Cristiano", type: "proper" },
+        { w: "بِحَمَاسٍ", t: "with enthusiasm", type: "noun" },
+        { w: "كَبِيرٍ،", t: "great,", type: "adj" },
+        { w: "فَهُوَ", t: "so he", type: "connector" },
+        { w: "قَوِيُّ", t: "strong", type: "adj" },
+        { w: "الْبُنْيَةِ", t: "built", type: "noun" },
+        { w: "وَسَرِيعٌ", t: "and fast", type: "adj" },
+        { w: "جِدًّا.", t: "very.", type: "adv" },
+        { w: "كَمَا", t: "Also", type: "connector" },
+        { w: "أَنَّهُ", t: "he", type: "" },
+        { w: "سَجَّلَ", t: "scored", type: "verb_past" },
+        { w: "أَهْدَافًا", t: "goals", type: "plural" },
+        { w: "رَائِعَةً", t: "wonderful", type: "adj" },
+        { w: "بِرَأْسِهِ.", t: "with his head.", type: "noun" },
+        { w: "خِتَامًا،", t: "In conclusion,", type: "connector" },
+        { w: "أُحِبُّ", t: "I love", type: "verb_present" },
+        { w: "طَرِيقَتَهُ", t: "his way", type: "noun" },
+        { w: "فِي", t: "in", type: "preposition" },
+        { w: "الِاحْتِفَالِ", t: "celebrating", type: "noun" },
+        { w: "بِالْأَهْدَافِ.", t: "the goals.", type: "plural" }
+    ];
+
+    const praiseWords = ["إجَابَةٌ صَحِيحَة. أَحْسَنْتْ", "إجَابَةٌ صَحِيحَة. مُمْتَازٌ", " إجَابَةٌ صَحِيحَة. رَائِعٌ", "إجَابَةٌ صَحِيحَة. جَيِّدٌ جِدًّا"];
+    
+    // NEW Listening Data
+    const listeningScript = "أَهْلًا بِكُمْ يَا أَصْدِقَائِي. سَأُحَدِّثُكُمْ الْيَوْمَ عَنْ النَّجْمِ الْأُرْجُنْتِينِيِّ لِيُونِيل مِيسِي. وُلِدَ هَذَا اللَّاعِبُ الْمَوْهُوبُ فِي دَوْلَةِ الْأَرْجَنْتِين، وَقَدْ أَظْهَرَ حُبًّا شَدِيدًا لِلْكُرَةِ مُنْذُ طُفُولَتِهِ. يَشْتَهِرُ مِيسِي بِقُدْرَتِهِ الْعَجِيبَةِ عَلَى الْمُرَاوَغَةِ، حَيْثُ يَمُرُّ بَيْنَ اللَّاعِبِينَ بِخِفَّةٍ وَمَهَارَةٍ. قَضَى مِيسِي مُعْظَمَ حَيَاتِهِ الرِّيَاضِيَّةِ فِي نَادِي بَرْشَلُونَة الْإِسْبَانِي وَحَقَّقَ مَعَهُمْ الْكَثِيرَ مِنَ الْأَلْقَابِ. وَفِي النِّهَايَةِ، نَجَحَ فِي تَحْقِيقِ حُلْمِهِ الْكَبِيرِ بِالْفَوْزِ بِكَأْسِ الْعَالَمِ مَعَ مُنْتَخَبِ بِلَادِهِ.";
+
+    const listeningQuestions = [
+        { q: "عَمَّنْ يَتَحَدَّثُ النَّصُّ؟", options: ["عَنْ كِرِيسْتِيَانُو", "عَنْ مِيسِي", "عَنْ نَيْمَار"], correct: 1 },
+        { q: "أَيْنَ وُلِدَ مِيسِي؟", options: ["فِي الْأَرْجَنْتِين", "فِي إِسْبَانِيَا", "فِي الْبَرَازِيل"], correct: 0 },
+        { q: "مَتَى أَحَبَّ مِيسِي الْكُرَةَ؟", options: ["فِي كِبَرِهِ", "مُنْذُ طُفُولَتِهِ", "قَبْلَ سَنَةٍ"], correct: 1 },
+        { q: "فِي أَيِّ نَادٍ قَضَى مُعْظَمَ حَيَاتِهِ؟", options: ["رِيَال مَدْرِيد", "بَرْشَلُونَة", "بَارِيس سَان جِيرْمَان"], correct: 1 },
+        { q: "مَا الْحُلْمُ الَّذِي حَقَّقَهُ فِي النِّهَايَةِ؟", options: ["الْفَوْز بِكَأْسِ الْعَالَمِ", "شِرَاء سَيَّارَة", "السَّفَر لِلْقَمَرِ"], correct: 0 }
+    ];
+
+    let currentTab = 'reading';
+    let speechRate = 0.8;
+    let synthesis = window.speechSynthesis;
+    let selectedTask = null; 
+    let selectedVocab = null;
+    let userSelectedIndices = [];
+    let currentCardIndex = 0;
+    
+    let gameScore = 0;
+    let itemsAnswered = 0;
+    let itemAttempts = {};
+    
+    // Variables for Extract Game
+    let extractCounts = {};
+    let extractWrongAttempts = 0;
+
+    // Variables for Comprehension Quiz
+    let compQuizScore = 0;
+    let quizExtractState = { active: false, task: null, counts: {}, answered: [] };
+    let mcqAnswered = [false, false, false, false, false];
+
+    // Variables for Listening Quiz
+    let listeningScore = 0;
+    let listeningMCQAnswered = [false, false, false, false, false];
+    let listeningRemaining = 5;
+
+    // === NEW: storage for delayed reveal ===
+    let compUserAnswers = [];              // for 'comprehension'
+    let compQuizSelections = [];           // for 'comp_quiz' MCQs
+    let quizExtractSelections = {};        // for 'comp_quiz' extract selections
+    let listeningSelections = [];          // for 'listening'
+
+    // === NEW: Recording globals ===
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordedBlob = null;
+    let recordedUrl = null;
+    let recording = false;
+
+    // === NEW: تتبّع الكلمات العربية المدروسة في الفلاش كاردز ===
+    let studiedArWords = new Set();
+
+    // === NEW: تتبّع إجمالي أسئلة كل كويز ديناميكيًا ===
+    let currentVocabTotal = 0;        // Quiz E-A
+    let currentVocabArEnTotal = 0;    // Quiz A-E
+
+    // === NEW: تتبّع البطاقات التي تمت مشاهدتها فعليًا ===
+    let viewedCards = new Set();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderText();
+        renderControls('reading');
+    });
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function switchTab(tabName) {
+        currentTab = tabName;
+        stopAudio();
+        resetTextStyles();
+        const contentDiv = document.getElementById('arabicContent');
+        const textPanel = document.getElementById('textPanel');
+        
+        contentDiv.innerHTML = '';
+        contentDiv.className = 'arabic-text';
+        textPanel.style.display = 'block';
+
+        if (tabName === 'flashcards' || tabName === 'listening') textPanel.style.display = 'none';
+        
+        // Disable tooltips in comprehension as well
+        if (tabName === 'vocab' || tabName === 'select' || tabName === 'vocab_ar_en' || tabName === 'comprehension') contentDiv.classList.add('no-trans');
+        else contentDiv.classList.remove('no-trans');
+
+        if (tabName === 'vocab_ar_en') {
+            contentDiv.className = 'english-text';
+            renderEnglishText();
+        } else if (tabName === 'comp_quiz') {
+            contentDiv.classList.remove('no-trans');
+            renderCompQuizText();
+        } else if (tabName !== 'listening') {
+            renderText();
+        }
+
+        if (tabName === 'select') {
+             userSelectedIndices.forEach(idx => {
+                 const el = document.getElementById(`w-${idx}`);
+                 if(el) el.classList.add('selected-vocab');
+             });
+        }
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabName));
+        if (activeBtn) activeBtn.classList.add('active');
+
+        // Force black text in all tabs except Reading
+        if (tabName === 'reading') {
+            contentDiv.classList.remove('all-black');
+        } else {
+            contentDiv.classList.add('all-black');
+        }
+
+        renderControls(tabName);
+    }
+
+    function renderText() {
+        const container = document.getElementById('arabicContent');
+        container.innerHTML = '';
+        textData.forEach((item, index) => {
+            const span = document.createElement('span');
+            span.textContent = item.w + ' ';
+            span.className = 'word';
+            span.id = `w-${index}`;
+            if (item.color) {
+                span.style.color = item.color;
+            }
+            span.dataset.type = item.type;
+            span.dataset.trans = item.t;
+            span.onclick = () => handleWordClick(span, item, index);
+            container.appendChild(span);
+        });
+    }
+
+    // Function to render the new Quiz Text
+    function renderCompQuizText() {
+        const container = document.getElementById('arabicContent');
+        container.innerHTML = '';
+        quizTextData.forEach((item, index) => {
+            const span = document.createElement('span');
+            span.textContent = item.w + ' ';
+            span.className = 'word';
+            span.id = `qw-${index}`;
+            span.dataset.type = item.type;
+            span.dataset.trans = item.t;
+            span.onclick = () => handleCompQuizWordClick(span, item);
+            container.appendChild(span);
+        });
+    }
+
+    function renderEnglishText() {
+        const container = document.getElementById('arabicContent');
+        container.innerHTML = '';
+        textData.forEach((item, index) => {
+            const span = document.createElement('span');
+            span.textContent = item.t + ' ';
+            span.className = 'word';
+            span.id = `w-en-${index}`;
+            span.dataset.type = item.type;
+            span.dataset.arabic = item.w;
+            span.onclick = () => handleWordClick(span, item, index);
+            container.appendChild(span);
+        });
+    }
+
+    function handleWordClick(element, item, index) {
+        if (currentTab === 'select') {
+            if (userSelectedIndices.includes(index)) {
+                userSelectedIndices = userSelectedIndices.filter(i => i !== index);
+                element.classList.remove('selected-vocab');
+            } else {
+                userSelectedIndices.push(index);
+                element.classList.add('selected-vocab');
+            }
+            const countDisplay = document.getElementById('countDisplay');
+            if (countDisplay) countDisplay.textContent = userSelectedIndices.length;
+        } else if (currentTab === 'vocab') {
+             speak(item.w);
+             checkVocabAnswer(element, item, index);
+        } else if (currentTab === 'vocab_ar_en') {
+            checkVocabArEnAnswer(element, item, index);
+        } else if (currentTab === 'extract') {
+             speak(item.w);
+             checkExtractAnswer(element, item);
+        } else {
+            speak(item.w);
+        }
+    }
+
+    // Handler for the new Quiz tab
+    function handleCompQuizWordClick(element, item) {
+        speak(item.w);
+        if (quizExtractState.active && quizExtractState.task) {
+            // record selection only (no immediate correction)
+            recordCompQuizExtractSelection(element, item);
+        }
+    }
+
+    function cleanText(text) {
+        if (!text) return "";
+        let clean = text.replace(/[\u064B-\u065F]/g, '').replace(/[،,.\-]/g, '');
+        if (clean.length > 3 && clean.startsWith('و')) clean = clean.substring(1);
+        return clean.trim().toLowerCase();
+    }
+
+    function renderControls(tab) {
+        const panel = document.getElementById('controlPanel');
+        panel.innerHTML = '';
+
+        if (tab === 'reading') {
+            panel.innerHTML = `
+                <div class="panel-header">Reading Controls</div>
+                <button class="btn" onclick="startAutoRead()"><span>▶</span> Read Text</button>
+                <button class="btn" onclick="stopAudio()" style="background:#e57373"><span>⏸</span> Stop</button>
+                <div style="margin-top:20px">
+                    <label style="font-weight:bold; font-size:0.9rem">Reading Speed:</label>
+                    <div class="speed-group">
+                        <button class="speed-btn" onclick="changeSpeed(0.6, this)">Slow</button>
+                        <button class="speed-btn active" onclick="changeSpeed(0.8, this)">Normal</button>
+                        <button class="speed-btn" onclick="changeSpeed(1.0, this)">Fast</button>
+                    </div>
+                </div>
+
+                <!-- Recording UI -->
+                <div class="recording-section">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:1.6rem">🎙️</span>
+                            <div>
+                                <div style="font-weight:800; color:var(--primary);">سجّل قراءتك</div>
+                                <span id="recStatus" class="status-badge">Idle</span>
+                            </div>
+                        </div>
+                        <div class="recording-actions">
+                            <button id="btnStartRec" class="btn" style="padding:8px 14px; min-width:160px;" onclick="startUserRecording()">Record your reading</button>
+                            <button id="btnStopRec" class="btn" style="background:#e57373; padding:8px 14px;" onclick="stopUserRecording()" disabled>Stop</button>
+                            <button id="btnPlayRec" class="btn" style="background:#455a64; padding:8px 14px;" onclick="playUserRecording()" disabled>Play</button>
+                            <button id="btnDownRec" class="btn" style="background:#f9a825; padding:8px 14px;" onclick="downloadUserRecording()" disabled>Download</button>
+                        </div>
+                    </div>
+
+                    <audio id="userRecordingAudio" style="width:100%; margin-top:10px;" controls></audio>
+
+                    <!-- Professional English instructions -->
+                    <div style="margin-top:10px; font-size:0.95rem; color:#555; line-height:1.7;">
+                        <strong>Instructions (English):</strong><br>
+                        1) Click <em>Record your reading</em> and allow microphone access when prompted.<br>
+                        2) Read the passage aloud at your natural pace and pronunciation.<br>
+                        3) Click <em>Stop</em> to finish. Then use <em>Play</em> to review your recording.<br>
+                        4) Click <em>Download</em> to save your audio file (<code>.webm</code>/<code>.ogg</code>) for submission or practice.
+                    </div>
+                </div>
+            `;
+
+            if (typeof updateRecordingUI === 'function') {
+                updateRecordingUI({ status: 'idle' });
+            }
+        } else if (tab === 'vocab') {
+            panel.innerHTML = `
+                <div class="panel-header">Quiz E-A</div>
+                <p class="panel-desc">Select the English word, then find its Arabic match in the text.</p>
+                <div id="vocabList"></div>
+                <div id="finalScore" class="final-score-modal"></div>`;
+            initVocabGame();
+        } else if (tab === 'vocab_ar_en') {
+            panel.innerHTML = `
+                <div class="panel-header">Quiz A-E</div>
+                <p class="panel-desc">Select the Arabic word, then find its English match in the text.</p>
+                <div id="vocabListArEn"></div>
+                <div id="finalScoreArEn" class="final-score-modal"></div>`;
+            initVocabGameArEn();
+        } else if (tab === 'extract') {
+            panel.innerHTML = `
+                <div class="panel-header">Extract from text</div>
+                <p class="panel-desc">Click the item once, then select <b>all</b> matching words in the text.</p>
+                <div id="extractList"></div>`;
+            initExtractGame();
+        } else if (tab === 'select') {
+            panel.innerHTML = `
+                <div class="panel-header">New vocabulary</div>
+                <p class="panel-desc">Read the text and click on the new words you want to study.</p>
+                <div class="feedback-msg" style="font-size:1rem; color:#666; font-weight:normal; text-align:center; padding:10px;">
+                    You have selected: <span id="countDisplay" style="font-weight:bold; color:var(--primary)">${userSelectedIndices.length}</span> words
+                </div>
+                <button class="btn" onclick="switchTab('flashcards')">Go to Flashcards ⬅</button>`;
+        } else if (tab === 'flashcards') {
+            panel.innerHTML = `
+                <div class="panel-header">البطاقات التعليمية</div>
+                <div id="flashcardWrapper"></div>`;
+            initFlashcards();
+        } else if (tab === 'comprehension') {
+            panel.innerHTML = `
+                <div class="panel-header">Comprehension</div>
+                <div id="quizContainer"></div>
+                <button class="btn" onclick="submitComprehension()" style="margin-top:10px;">Submit</button>
+                <div id="compResult" class="final-score-modal" style="display:none"></div>`;
+            initQuiz();
+        } else if (tab === 'comp_quiz') {
+            compQuizScore = 0;
+            mcqAnswered = [false, false, false, false, false];
+            quizExtractState = { active: false, task: null, counts: {}, answered: [] };
+            panel.innerHTML = `
+                <div class="quiz-score-header">
+                    <span>Final Score</span>
+                    <span id="quizScoreVal" style="visibility:hidden">0 / 10</span>
+                </div>
+                <div class="panel-header">Comprehension Quiz</div>
+                <div id="compQuizContent" style="overflow-y:auto; max-height: 400px; padding-right:5px;"></div>
+                <button class="btn" onclick="submitCompQuiz()" style="margin-top:10px;">Submit</button>
+            `;
+            initCompQuiz();
+        } else if (tab === 'listening') {
+            listeningScore = 0;
+            listeningMCQAnswered = [false, false, false, false, false];
+            listeningRemaining = 5;
+            panel.innerHTML = `
+                <div class="quiz-score-header">
+                    <span>Final Score</span>
+                    <span id="listeningScoreVal" style="visibility:hidden">0 / 5</span>
+                </div>
+                <div class="panel-header" style="width:100%; text-align:center">Listening Quiz</div>
+                
+                <div style="background:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+                     <div class="listening-icon">🎧</div>
+                     <div style="text-align:center; font-weight:bold; color:#00695c; margin-bottom:10px;">
+                        Questions Left: <span id="listeningCount">5</span>
+                     </div>
+                     <button class="btn" onclick="playListeningAudio()" style="width:auto; margin:0 auto; padding: 10px 40px; font-size:1.2rem;">Play Audio ▶</button>
+                     <button class="btn" onclick="stopAudio()" style="width:auto; margin:10px auto 0; background:#e57373; font-size:1rem">Stop ⏹</button>
+                </div>
+
+                <div id="listeningQuizContent" style="overflow-y:auto; max-height: 400px; padding-right:5px;"></div>
+                <button class="btn" onclick="revealListeningScore()" style="margin-top:15px;">Submit</button>
+            `;
+            initListeningQuiz();
+        }
+    }
+
+    function changeSpeed(rate, btn) {
+        speechRate = rate;
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function playTryAgain(element) {
+        if (synthesis.speaking) synthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance("حَاوِلْ مَرَّةً أُخْرَى");
+        utterance.lang = 'ar-SA';
+        synthesis.speak(utterance);
+        if (element) {
+            element.classList.add('wrong');
+            setTimeout(() => element.classList.remove('wrong'), 500);
+        }
+    }
+
+    function speak(text) {
+        if (synthesis.speaking) synthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ar-SA';
+        utterance.rate = speechRate;
+        synthesis.speak(utterance);
+    }
+    
+    function speakQuestion(text) {
+        if (synthesis.speaking) synthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ar-SA';
+        utterance.rate = 0.7; // Slower for clarity
+        synthesis.speak(utterance);
+    }
+    
+    function playListeningAudio() {
+        if (synthesis.speaking) synthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(listeningScript);
+        utterance.lang = 'ar-SA';
+        utterance.rate = 0.75; // Slow but natural
+        synthesis.speak(utterance);
+    }
+
+    function startAutoRead() {
+        stopAudio();
+        let fullText = "";
+        const wordIndices = [];
+        textData.forEach((item, index) => {
+            wordIndices.push({ index: index, start: fullText.length, length: item.w.length });
+            fullText += item.w + " ";
+        });
+        const utterance = new SpeechSynthesisUtterance(fullText);
+        utterance.lang = 'ar-SA';
+        utterance.rate = speechRate;
+        utterance.onboundary = function(event) {
+            if (event.name === 'word') {
+                const charIndex = event.charIndex;
+                const currentWord = wordIndices.find(w => charIndex >= w.start && charIndex < (w.start + w.length + 1));
+                if (currentWord) {
+                    const prev = document.querySelector('.word.highlight-read');
+                    if (prev) prev.classList.remove('highlight-read');
+                    const el = document.getElementById(`w-${currentWord.index}`);
+                    if (el) el.classList.add('highlight-read');
+                }
+            }
+        };
+        utterance.onend = () => {
+             const prev = document.querySelector('.word.highlight-read');
+             if (prev) prev.classList.remove('highlight-read');
+        };
+        synthesis.speak(utterance);
+    }
+
+    function stopAudio() {
+        if (synthesis.speaking) synthesis.cancel();
+        const prev = document.querySelector('.word.highlight-read');
+        if (prev) prev.classList.remove('highlight-read');
+    }
+
+    function playPraise() {
+        const word = praiseWords[Math.floor(Math.random() * praiseWords.length)];
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'ar-SA';
+        synthesis.speak(utterance);
+    }
+
+    const extractTasks = [
+        { label: "فعل مضارع", key: "present", color: "#2196f3" },
+        { label: "صفات", key: "adj", color: "#4caf50" },
+        { label: "مفرد (رياضات)", key: "singular_sport", color: "#ff9800" },
+        { label: "جمع (هدف)", key: "plural_goal", color: "#9c27b0" },
+        { label: "مرادف (سجل)", key: "synonym_score", color: "#00bcd4" },
+        { label: "اسم تفضيل", key: "superlative", color: "#f44336" }, 
+        { label: "أسلوب تمني", key: "wish", color: "#e91e63" },
+        { label: "جمع (مباراة)", key: "plural_match", color: "#795548" }, 
+        { label: "جمع (بطولة)", key: "plural_champ", color: "#607d8b" }
+    ];
+
+    function initExtractGame() {
+        const list = document.getElementById('extractList');
+        extractCounts = {};
+        
+        extractTasks.forEach(task => {
+            let count = 0;
+            textData.forEach(item => {
+                if (item.type.includes(task.key)) count++;
+            });
+            extractCounts[task.key] = count;
+        });
+
+        extractTasks.forEach(task => {
+            const div = document.createElement('div');
+            div.className = 'task-item';
+            div.id = `task-${task.key}`;
+            div.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <span class="color-dot" style="background:${task.color}"></span>
+                    <span style="font-weight:bold; font-size:1.1rem">${task.label}</span>
+                </div>
+                <span id="count-${task.key}" style="font-size:0.8rem; color:#666; font-family:'Calibri', sans-serif;">(${extractCounts[task.key]} Words)</span>
+            `;
+            div.onclick = () => {
+                if (div.classList.contains('completed')) return;
+                document.querySelectorAll('.task-item').forEach(el => el.classList.remove('active'));
+                div.classList.add('active');
+                div.style.borderColor = task.color;
+                selectedTask = task;
+                extractWrongAttempts = 0;
+            };
+            list.appendChild(div);
+        });
+    }
+
+    function checkExtractAnswer(element, item) {
+        if (!selectedTask) return;
+        
+        if (item.type.includes(selectedTask.key)) {
+            if (!element.classList.contains('found')) {
+                element.classList.add('found');
+                element.style.backgroundColor = selectedTask.color;
+                playPraise();
+                extractCounts[selectedTask.key]--;
+                
+                const countSpan = document.getElementById(`count-${selectedTask.key}`);
+                if (extractCounts[selectedTask.key] > 0) {
+                    countSpan.textContent = `(${extractCounts[selectedTask.key]} Words)`;
+                    const hint = document.getElementById('findMoreMsg');
+                    hint.style.display = 'none'; 
+                    void hint.offsetWidth; 
+                    hint.style.display = 'block';
+                } else {
+                    countSpan.textContent = `(0 Words)`;
+                    const taskDiv = document.getElementById(`task-${selectedTask.key}`);
+                    taskDiv.innerHTML += ` <span style="color:#4caf50; font-weight:bold; margin-right:5px">✅</span>`;
+                    taskDiv.classList.add('completed');
+                    taskDiv.classList.remove('active');
+                    selectedTask = null;
+                }
+                extractWrongAttempts = 0;
+            }
+        } else {
+            if (!element.classList.contains('found')) {
+                extractWrongAttempts++;
+                if (extractWrongAttempts >= 2) {
+                    if (synthesis.speaking) synthesis.cancel();
+                    textData.forEach((t, i) => {
+                        if (t.type.includes(selectedTask.key)) {
+                            const el = document.getElementById(`w-${i}`);
+                            if (el && !el.classList.contains('found')) {
+                                el.classList.add('found');
+                                el.style.backgroundColor = selectedTask.color;
+                            }
+                        }
+                    });
+                    extractCounts[selectedTask.key] = 0;
+                    const countSpan = document.getElementById(`count-${selectedTask.key}`);
+                    countSpan.textContent = `(0 Words)`;
+                    const taskDiv = document.getElementById(`task-${selectedTask.key}`);
+                    if (!taskDiv.innerHTML.includes('✅')) {
+                         taskDiv.innerHTML += ` <span style="color:#4caf50; font-weight:bold; margin-right:5px">✅</span>`;
+                    }
+                    taskDiv.classList.add('completed');
+                    taskDiv.classList.remove('active');
+                    selectedTask = null;
+                } else {
+                    playTryAgain(element);
+                }
+            }
+        }
+    }
+
+    const vocabPairs = [
+        { en: "strong", ar: "قَوِيٌّ" }, 
+        { en: "active", ar: "نَشِيطٌ" }, 
+        { en: "a history", ar: "تَارِيخٌ" },
+        { en: "and talented", ar: "ومَوْهُوبٌ" }, 
+        { en: "he scored", ar: "أَحْرَزَ" }, 
+        { en: "pleasure", ar: "بِالْمُتْعَةِ" },
+        { en: "the League", ar: "الدَّوْرِي" }, 
+        { en: "many", ar: "الْكَثِيرَ" }, 
+        { en: "is the fastest", ar: "أَسْرَعُ" },
+        { en: "the world", ar: "الْعَالَمِ" }
+    ];
+
+    function initVocabGame() {
+        gameScore = 0; itemsAnswered = 0; itemAttempts = {};
+        const list = document.getElementById('vocabList');
+
+        // filter out studied words from flashcards
+        const remainingPairs = vocabPairs.filter(pair => !studiedArWords.has(cleanText(pair.ar)));
+        const shuffledVocab = shuffleArray([...remainingPairs]);
+        currentVocabTotal = shuffledVocab.length; // NEW: dynamic total for E-A
+
+        list.innerHTML = '';
+
+        if (shuffledVocab.length === 0) {
+            list.innerHTML = `<div class="empty-state">No new items. Great job! ✅</div>`;
+            return;
+        }
+
+        shuffledVocab.forEach((pair, idx) => {
+            const div = document.createElement('div');
+            div.className = 'task-item';
+            div.style.direction = 'ltr';
+            div.id = `q-ea-${idx}`;
+            div.innerHTML = `<span>${pair.en}</span>`;
+            div.onclick = () => {
+                if (div.classList.contains('completed')) return;
+                document.querySelectorAll('.task-item').forEach(el => el.classList.remove('active'));
+                div.classList.add('active');
+                selectedVocab = { target: pair.ar, en_source: pair.en, element: div, id: `q-ea-${idx}` };
+                resetTemporaryStyles();
+            };
+            list.appendChild(div);
+        });
+    }
+
+    function initVocabGameArEn() {
+        gameScore = 0; itemsAnswered = 0; itemAttempts = {};
+        const list = document.getElementById('vocabListArEn');
+        const shuffledVocab = shuffleArray([...vocabPairs]);
+        currentVocabArEnTotal = shuffledVocab.length; // NEW: dynamic total for A-E
+
+        list.innerHTML = '';
+        shuffledVocab.forEach((pair, idx) => {
+            const div = document.createElement('div');
+            div.className = 'task-item';
+            div.style.direction = 'rtl';
+            div.id = `q-ae-${idx}`;
+            div.innerHTML = `<span>${pair.ar}</span>`;
+            div.onclick = () => {
+                if (div.classList.contains('completed')) return;
+                document.querySelectorAll('.task-item').forEach(el => el.classList.remove('active'));
+                div.classList.add('active');
+                selectedVocab = { target: pair.en, ar_source: pair.ar, element: div, id: `q-ae-${idx}` };
+                resetTemporaryStyles();
+            };
+            list.appendChild(div);
+        });
+    }
+
+    function resetTemporaryStyles() {
+        document.querySelectorAll('.word').forEach(w => {
+            if (!w.classList.contains('found')) {
+                w.classList.remove('wrong');
+                 w.style.backgroundColor = "";
+            }
+        });
+    }
+
+    function resetTextStyles() {
+        document.querySelectorAll('.word').forEach((w, index) => {
+            w.classList.remove('found', 'wrong', 'highlight-read', 'selected-vocab', 'evidence-active', 'pending-select');
+            w.style.boxShadow = '';
+            if (w.id.includes('w-en')) {
+                w.style.backgroundColor = ''; 
+            } else if (w.id.includes('qw-')) {
+                 w.style.backgroundColor = ''; w.style.color = ''; 
+            } else {
+                 if (textData[index] && textData[index].color) {
+                    w.style.color = textData[index].color;
+                    w.style.backgroundColor = '';
+                } else {
+                    w.style.backgroundColor = ''; w.style.color = ''; 
+                }
+            }
+        });
+    }
+
+    function checkVocabAnswer(element, item, index) {
+        if (!selectedVocab) return;
+        
+        const cleanClicked = cleanText(item.w);
+        const cleanTarget = cleanText(selectedVocab.target);
+        const itemId = selectedVocab.id;
+
+        if (itemAttempts[itemId] === undefined) itemAttempts[itemId] = 0;
+
+        if (cleanClicked === cleanTarget) {
+            element.classList.add('found');
+            element.style.backgroundColor = "#4caf50";
+            
+            selectedVocab.element.style.borderColor = "#4caf50";
+            selectedVocab.element.style.background = "#e8f5e9";
+            selectedVocab.element.classList.remove('active');
+            selectedVocab.element.classList.add('completed');
+            selectedVocab.element.innerHTML = `<span>${selectedVocab.en_source}</span> <span style="color:#00695c; margin-left:10px; font-weight:bold; font-size:1.2rem"> = ${selectedVocab.target}</span> ✅`;
+            
+            playPraise();
+            
+            if (itemAttempts[itemId] === 0) gameScore++;
+            itemsAnswered++;
+            checkGameCompletion('vocab');
+            selectedVocab = null;
+        } else {
+            itemAttempts[itemId]++;
+            if (itemAttempts[itemId] >= 2) {
+                if (synthesis.speaking) synthesis.cancel();
+                selectedVocab.element.style.borderColor = "#e53935";
+                selectedVocab.element.style.background = "#ffebee";
+                selectedVocab.element.classList.remove('active');
+                selectedVocab.element.classList.add('completed');
+                selectedVocab.element.innerHTML = `<span>${selectedVocab.en_source}</span> <span style="color:#e53935; margin-left:10px; font-weight:bold; font-size:1.2rem"> = ${selectedVocab.target}</span> ❌`;
+                
+                const wordIdx = textData.findIndex(t => t.w === selectedVocab.target);
+                if (wordIdx !== -1 && !userSelectedIndices.includes(wordIdx)) {
+                    userSelectedIndices.push(wordIdx);
+                }
+
+                itemsAnswered++;
+                checkGameCompletion('vocab');
+                selectedVocab = null;
+                resetTemporaryStyles(); 
+            } else {
+                playTryAgain(element);
+            }
+        }
+    }
+
+    function checkVocabArEnAnswer(element, item, index) {
+        if (!selectedVocab) return;
+        
+        const cleanClicked = cleanText(item.t);
+        const cleanTarget = cleanText(selectedVocab.target);
+        const itemId = selectedVocab.id;
+
+        if (itemAttempts[itemId] === undefined) itemAttempts[itemId] = 0;
+
+        if (cleanClicked === cleanTarget) {
+            element.classList.add('found');
+            element.style.backgroundColor = "#4caf50";
+            speak(selectedVocab.ar_source);
+            selectedVocab.element.style.borderColor = "#4caf50";
+            selectedVocab.element.style.background = "#e8f5e9";
+            selectedVocab.element.classList.remove('active');
+            selectedVocab.element.classList.add('completed');
+            selectedVocab.element.innerHTML = `✅ ${selectedVocab.ar_source} <span style="color:#00695c; margin-right:10px; font-weight:bold; font-size:1.1rem; direction:ltr;"> = ${selectedVocab.target}</span>`;
+            
+            if (itemAttempts[itemId] === 0) gameScore++;
+            itemsAnswered++;
+            checkGameCompletion('vocab_ar_en');
+            selectedVocab = null;
+        } else {
+            itemAttempts[itemId]++;
+            if (itemAttempts[itemId] >= 2) {
+                 if (synthesis.speaking) synthesis.cancel();
+                selectedVocab.element.style.borderColor = "#e53935";
+                selectedVocab.element.style.background = "#ffebee";
+                selectedVocab.element.classList.remove('active');
+                selectedVocab.element.classList.add('completed');
+                selectedVocab.element.innerHTML = `❌ ${selectedVocab.ar_source} <span style="color:#e53935; margin-right:10px; font-weight:bold; font-size:1.1rem; direction:ltr;"> = ${selectedVocab.target}</span>`;
+                
+                const wordIdx = textData.findIndex(t => t.w === selectedVocab.ar_source);
+                if (wordIdx !== -1 && !userSelectedIndices.includes(wordIdx)) {
+                    userSelectedIndices.push(wordIdx);
+                }
+
+                itemsAnswered++;
+                checkGameCompletion('vocab_ar_en');
+                selectedVocab = null;
+                resetTemporaryStyles();
+            } else {
+                 playTryAgain(element);
+            }
+        }
+    }
+
+    // === NEW: dynamic completion & modal ===
+    function checkGameCompletion(type) {
+        const total = (type === 'vocab') ? currentVocabTotal : currentVocabArEnTotal;
+
+        if (itemsAnswered === total && total > 0) {
+            const modalId = type === 'vocab' ? 'finalScore' : 'finalScoreArEn';
+            const modal = document.getElementById(modalId);
+            
+            if (gameScore === total) {
+                const praise = praiseWords[Math.floor(Math.random() * praiseWords.length)];
+                modal.innerHTML = `
+                    <div class="score-text">Final Score</div>
+                    <div class="score-number">${gameScore} / ${total}</div>
+                    <div class="score-text" style="color: #43a047; font-size: 1.8rem; margin-top: 15px;">${praise}</div>
+                `;
+            } else {
+                modal.innerHTML = `
+                    <div class="score-text">Final Score</div>
+                    <div class="score-number">${gameScore} / ${total}</div>
+                    <div class="score-text">Please go back to Flashcards</div>
+                    <button class="btn" style="width: auto; margin: 0 auto;" onclick="switchTab('flashcards')">Go ➡</button>
+                `;
+            }
+            modal.style.display = 'block';
+        }
+    }
+
+    function initFlashcards() {
+        const wrapper = document.getElementById('flashcardWrapper');
+        currentCardIndex = 0;
+        viewedCards = new Set(); // NEW: reset viewed tracking
+
+        if (userSelectedIndices.length === 0) {
+            wrapper.innerHTML = `<div class="empty-state"><p>You haven't selected any words yet.</p><button class="btn" onclick="switchTab('select')">Go back to choose words</button></div>`;
+            return;
+        }
+        renderCard();
+    }
+
+    function renderCard() {
+        const wrapper = document.getElementById('flashcardWrapper');
+        const wordIndex = userSelectedIndices[currentCardIndex];
+        const item = textData[wordIndex];
+        
+        let displayWord = item.w.replace(/[،,.\-]/g, '').trim();
+        if (displayWord.length > 2 && displayWord.startsWith('و')) {
+             displayWord = displayWord.replace(/^وَ?/, '');
+        }
+
+        // NEW: mark current card as viewed
+        viewedCards.add(currentCardIndex);
+        const allViewed = viewedCards.size === userSelectedIndices.length;
+
+        const doneHtml = allViewed ? `
+            <div class="card-actions" style="text-align:center; width:60%; max-width:350px; margin:10px auto 0;">
+                <button class="btn" style="width:auto; padding:6px 18px;" onclick="completeFlashcards()">I'm done</button>
+            </div>
+        ` : '';
+
+        wrapper.innerHTML = `
+            <div class="flashcard-container active">
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="card-face card-front">
+                        <div class="card-text">${displayWord}</div>
+                        <button class="btn" style="width:auto; margin-top:35px; z-index:10; padding:5px 15px; font-size:1rem" onclick="event.stopPropagation(); speak('${item.w}')">🔊 اسْتَمِع</button>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="card-trans">${item.t}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-controls" style="width: 60%; max-width: 350px; margin: 5px auto 0 auto;">
+                <button class="btn" style="width:45%; padding: 5px; font-size: 0.9rem;" onclick="prevCard()" ${currentCardIndex === 0 ? 'disabled' : ''}>Previous</button>
+                <button class="btn" style="width:45%; padding: 5px; font-size: 0.9rem;" onclick="nextCard()" ${currentCardIndex === userSelectedIndices.length - 1 ? 'disabled' : ''}>Next</button>
+            </div>
+            ${doneHtml}
+        `;
+    }
+
+    // Flashcards navigation
+    function nextCard() {
+        if (currentCardIndex < userSelectedIndices.length - 1) {
+            currentCardIndex++;
+            renderCard();
+            stopAudio();
+        }
+    }
+    function prevCard() {
+        if (currentCardIndex > 0) {
+            currentCardIndex--;
+            renderCard();
+            stopAudio();
+        }
+    }
+
+    // When finishing flashcards: store studied words & go to Quiz E-A
+    function completeFlashcards() {
+        studiedArWords.clear();
+        userSelectedIndices.forEach(idx => {
+            const original = (textData[idx] && textData[idx].w) ? textData[idx].w : '';
+            const normalized = cleanText(original);
+            if (normalized) studiedArWords.add(normalized);
+        });
+        switchTab('vocab');
+    }
+
+    // --- COMPREHENSION SECTION ---
+
+    const quizQuestions = [
+        { 
+            q: "1- ما فائدة الرياضة؟", 
+            trans: "What is the benefit of sports?",
+            options: [
+                { text: "تَجْعَلُنِي أَشْعُرُ بِالْمُتْعَةِ", isCorrect: true },
+                { text: "تَجْعَلُنِي أَشْعُرُ بِالْجُوعِ", isCorrect: false },
+                { text: "تَجْعَلُنِي أَشْعُرُ بِالْمَلَلِ", isCorrect: false }
+            ],
+            indices: [5, 6, 7],
+            highlightColor: "rgba(178, 223, 219, 0.6)"
+        },
+        { 
+            q: "2- علل : هو يشجع نادي ليفربول.", 
+            trans: "Give reason: He supports Liverpool Club.",
+            options: [
+                { text: "لِأَنَّهُ فَرِيقٌ قَوِيٌّ وَلَهُ تَارِيخٌ كَبِيرٌ", isCorrect: true },
+                { text: "لِأَنَّ أَلْوَانَ الفَرِيقِ جَمِيلَةٌ", isCorrect: false },
+                { text: "لِأَنَّهُ فَرِيقٌ جَدِيدٌ", isCorrect: false }
+            ],
+            indices: [21, 22, 23, 24, 25, 26, 27],
+            highlightColor: "rgba(255, 224, 178, 0.6)"
+        },
+        { 
+            q: "3- دلل: محمد صلاح لاعب محترف.", 
+            trans: "Prove/Give evidence: Mohamed Salah is a professional player.",
+            options: [
+                { text: "لِأَنَّهُ نَشِيطٌ وَمَوْهُوبٌ وَأَحْرَزَ الْكَثِيرَ مِنَ الْأَهْدَافِ", isCorrect: true },
+                { text: "لِأَنَّهُ طَوِيلُ الْقَامَةِ", isCorrect: false },
+                { text: "لِأَنَّهُ يَلْعَبُ فِي فَرَنْسَا", isCorrect: false }
+            ],
+            indices: [40, 41, 42, 43, 44, 45, 46, 47, 48],
+            highlightColor: "rgba(225, 190, 231, 0.6)"
+        }
+    ];
+
+    function initQuiz() {
+        const container = document.getElementById('quizContainer');
+        container.innerHTML = '';
+        
+        // Reset old highlights when initializing
+        document.querySelectorAll('.word').forEach(w => w.style.backgroundColor = '');
+
+        // initialize storage for delayed submission
+        compUserAnswers = Array(quizQuestions.length).fill(null);
+
+        quizQuestions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            
+            const shuffledOptions = shuffleArray([...q.options]);
+
+            let optionsHTML = '';
+            shuffledOptions.forEach((opt, i) => {
+                optionsHTML += `<label><input type="radio" name="q${index}" value="${opt.isCorrect}" onchange="recordComprehensionAnswer(${index}, '${opt.isCorrect}')"><span>${opt.text}</span></label>`;
+            });
+
+            card.innerHTML = `
+                <div class="quiz-question" 
+                     data-trans="${q.trans}" 
+                     onclick="speakQuestion('${q.q}')">
+                     ${q.q}
+                </div>
+                <div class="quiz-options">${optionsHTML}</div>`;
+            container.appendChild(card);
+        });
+    }
+
+    // Comprehension recording and submission
+    function recordComprehensionAnswer(qIndex, isCorrect) {
+        compUserAnswers[qIndex] = (isCorrect === true || isCorrect === 'true');
+    }
+
+    function submitComprehension() {
+        const cards = document.getElementsByClassName('quiz-card');
+        let correctCount = 0;
+
+        quizQuestions.forEach((q, idx) => {
+            // Show evidence now
+            q.indices.forEach(i => {
+                const el = document.getElementById(`w-${i}`);
+                if (el) {
+                    el.classList.add('evidence-active');
+                    el.style.backgroundColor = q.highlightColor;
+                }
+            });
+
+            const isCorrect = !!compUserAnswers[idx];
+            if (isCorrect) {
+                correctCount++;
+                cards[idx].style.borderColor = "#43a047";
+                cards[idx].style.backgroundColor = "#e8f5e9";
+            } else {
+                cards[idx].style.borderColor = "#e53935";
+            }
+
+            // lock inputs
+            const radios = document.getElementsByName(`q${idx}`);
+            radios.forEach(r => r.disabled = true);
+        });
+
+        const res = document.getElementById('compResult');
+        res.innerHTML = `
+            <div class="score-text">Final Score</div>
+            <div class="score-number">${correctCount} / ${quizQuestions.length}</div>
+        `;
+        res.style.display = 'block';
+    }
+
+    // --- NEW COMPREHENSION QUIZ LOGIC ---
+
+    const quizMCQData = [
+        { q: "مَنِ اللَّاعِبُ الْمُفَضَّلُ؟", options: ["كِرِيسْتِيَانُو رُونَالْدُو", "مُحَمَّد صَلَاح", "مِيسِي"], correct: 0 },
+        { q: "كَيْفَ يَلْعَبُ هَذَا اللَّاعِبُ؟", options: ["بِحَمَاسٍ كَبِيرٍ", "بِبُطْءٍ", "بِكُسْلٍ"], correct: 0 },
+        { q: "مَا صِفَاتُ جِسْمِ اللَّاعِبِ؟", options: ["ضَعِيفٌ", "قَوِيُّ الْبُنْيَةِ", "قَصِيرٌ جِدًّا"], correct: 1 },
+        { q: "كَيْفَ سَجَّلَ الْأَهْدَافَ؟", options: ["بِيَدِهِ", "بِرَأْسِهِ", "بِرُكْبَتِهِ"], correct: 1 },
+        { q: "مَاذَا يُحِبُّ الْكَاتِبُ؟", options: ["طَرِيقَةَ الِاحْتِفَالِ", "لَوْنَ الْمَلْعَبِ", "صَوْتَ الْجُمْهُورِ"], correct: 0 }
+    ];
+
+    const quizExtractTasks = [
+        { label: "فعل مضارع", key: "verb_present", color: "#2196f3" },
+        { label: "صفات", key: "adj", color: "#4caf50" },
+        { label: "اسم علم", key: "proper", color: "#ff9800" },
+        { label: "جمع", key: "plural", color: "#9c27b0" },
+        { label: "حرف جر", key: "preposition", color: "#00bcd4" }
+    ];
+
+    function initCompQuiz() {
+        const container = document.getElementById('compQuizContent');
+        
+        // MCQs Section
+        const mcqDiv = document.createElement('div');
+        mcqDiv.innerHTML = `<div class="panel-header" style="font-size:1.2rem; border-color:#ccc; margin-top:10px">Choose the correct answer</div>`;
+        
+        // init selections
+        compQuizSelections = Array(quizMCQData.length).fill(null);
+        quizExtractSelections = {};
+
+        quizMCQData.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            card.style.padding = "10px";
+            card.innerHTML = `<div style="font-weight:bold; margin-bottom:5px;">${index + 1}. ${item.q}</div>`;
+            const optsDiv = document.createElement('div');
+            optsDiv.className = 'quiz-options';
+            item.options.forEach((opt, optIdx) => {
+                // record only
+                optsDiv.innerHTML += `<label><input type="radio" name="nmcq_${index}" onchange="recordCompQuizMCQ(${index}, ${optIdx})"> ${opt}</label>`;
+            });
+            card.appendChild(optsDiv);
+            mcqDiv.appendChild(card);
+        });
+        container.appendChild(mcqDiv);
+
+        // Extract Section
+        const extDiv = document.createElement('div');
+        extDiv.innerHTML = `<div class="panel-header" style="font-size:1.2rem; border-color:#ccc; margin-top:20px">Extract an example of</div>`;
+        
+        // Count items for logic (kept)
+        quizExtractState.counts = {};
+        quizExtractTasks.forEach(t => {
+            let c = 0;
+            quizTextData.forEach(w => { if(w.type === t.key) c++; });
+            quizExtractState.counts[t.key] = c;
+        });
+
+        quizExtractTasks.forEach((task, idx) => {
+             const div = document.createElement('div');
+            div.className = 'task-item';
+            div.id = `qtask-${task.key}`;
+            div.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <span class="color-dot" style="background:${task.color}"></span>
+                    <span style="font-weight:bold; font-size:1.1rem">${task.label}</span>
+                </div>
+                <span id="qcount-${task.key}" style="font-size:0.8rem; color:#666;"></span>
+            `;
+            div.onclick = () => {
+                if(div.classList.contains('completed')) return;
+                document.querySelectorAll('.task-item').forEach(e=>e.classList.remove('active'));
+                div.classList.add('active');
+                div.style.borderColor = task.color;
+                quizExtractState.active = true;
+                quizExtractState.task = task;
+                quizExtractState.answered = [];
+            };
+            extDiv.appendChild(div);
+        });
+        container.appendChild(extDiv);
+    }
+
+    // record MCQ selection (comp_quiz)
+    function recordCompQuizMCQ(qIdx, optIdx) {
+        compQuizSelections[qIdx] = optIdx;
+    }
+
+    // record extract selection (comp_quiz)
+    function recordCompQuizExtractSelection(element, item) {
+        const task = quizExtractState.task;
+        if (!task) return;
+        if (!quizExtractSelections[task.key]) quizExtractSelections[task.key] = new Set();
+
+        const idx = parseInt(element.id.replace('qw-', ''), 10);
+        if (quizExtractSelections[task.key].has(idx)) {
+            quizExtractSelections[task.key].delete(idx);
+            element.classList.remove('pending-select');
+        } else {
+            quizExtractSelections[task.key].add(idx);
+            element.classList.add('pending-select'); // temporary mark only
+        }
+    }
+
+    // submit for comp_quiz
+    function submitCompQuiz() {
+        compQuizScore = 0;
+
+        // Score MCQs
+        quizMCQData.forEach((item, qIdx) => {
+            const chosen = compQuizSelections[qIdx];
+            const correct = item.correct;
+            const radios = document.getElementsByName(`nmcq_${qIdx}`);
+            const card = radios.length ? radios[0].closest('.quiz-card') : null;
+
+            if (chosen === correct) {
+                compQuizScore++;
+                if (card) { card.style.borderColor = "#4caf50"; card.style.backgroundColor = "#e8f5e9"; }
+            } else {
+                if (card) card.style.borderColor = "#e53935";
+            }
+            radios.forEach(r => r.disabled = true);
+        });
+
+        // Score Extract tasks
+        quizExtractTasks.forEach(task => {
+            const taskDiv = document.getElementById(`qtask-${task.key}`);
+            const chosenSet = quizExtractSelections[task.key] || new Set();
+            const chosenArr = Array.from(chosenSet);
+
+            // Accept any one correct word
+            let gotOne = false;
+            for (const i of chosenArr) {
+                if (quizTextData[i] && quizTextData[i].type === task.key) {
+                    const el = document.getElementById(`qw-${i}`);
+                    if (el) {
+                        el.classList.add('found');
+                        el.style.backgroundColor = task.color;
+                    }
+                    gotOne = true;
+                    break;
+                }
+            }
+
+            // remove temporary marks
+            chosenArr.forEach(i => {
+                const el = document.getElementById(`qw-${i}`);
+                if (el) el.classList.remove('pending-select');
+            });
+
+            if (gotOne) {
+                if (!taskDiv.classList.contains('completed')) {
+                    taskDiv.classList.add('completed');
+                    taskDiv.classList.remove('active');
+                    taskDiv.innerHTML += ` ✅`;
+                }
+                compQuizScore++;
+            } else {
+                if (taskDiv && !taskDiv.classList.contains('completed')) {
+                    taskDiv.style.borderColor = "#e53935";
+                }
+            }
+        });
+
+        // Reveal score now
+        const scoreEl = document.getElementById('quizScoreVal');
+        if (scoreEl) {
+            scoreEl.textContent = `${compQuizScore} / 10`;
+            scoreEl.style.visibility = "visible";
+        }
+
+        quizExtractState.active = false;
+        quizExtractState.task = null;
+    }
+
+    // --- LISTENING QUIZ LOGIC ---
+
+    function initListeningQuiz() {
+        const container = document.getElementById('listeningQuizContent');
+        container.innerHTML = '';
+        listeningRemaining = 5;
+        document.getElementById('listeningCount').textContent = listeningRemaining;
+        document.getElementById('listeningScoreVal').style.visibility = "hidden";
+
+        // init selections
+        listeningSelections = Array(listeningQuestions.length).fill(null);
+
+        listeningQuestions.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            card.style.padding = "10px";
+            card.innerHTML = `<div style="font-weight:bold; margin-bottom:5px;">${index + 1}. ${item.q}</div>`;
+            const optsDiv = document.createElement('div');
+            optsDiv.className = 'quiz-options';
+            item.options.forEach((opt, optIdx) => {
+                // record only (no immediate feedback)
+                optsDiv.innerHTML += `<label><input type="radio" name="lmcq_${index}" onchange="checkListeningMCQ(${index}, ${optIdx})"> ${opt}</label>`;
+            });
+            card.appendChild(optsDiv);
+            container.appendChild(card);
+        });
+    }
+
+    function checkListeningMCQ(qIdx, selectedOptIdx) {
+        // store selection only; update remaining count
+        listeningSelections[qIdx] = selectedOptIdx;
+        const answered = listeningSelections.filter(v => v !== null).length;
+        listeningRemaining = listeningQuestions.length - answered;
+        const cnt = document.getElementById('listeningCount');
+        if (cnt) cnt.textContent = listeningRemaining;
+    }
+
+    function revealListeningScore() {
+        listeningScore = 0;
+        for (let i = 0; i < listeningQuestions.length; i++) {
+            const correct = listeningQuestions[i].correct === listeningSelections[i];
+            const radios = document.getElementsByName(`lmcq_${i}`);
+            const card = radios.length ? radios[0].closest('.quiz-card') : null;
+
+            if (correct) {
+                listeningScore++;
+                if (card) { card.style.borderColor = "#4caf50"; card.style.backgroundColor = "#e8f5e9"; }
+            } else {
+                if (card) card.style.borderColor = "#e53935";
+            }
+            radios.forEach(r => r.disabled = true);
+        }
+
+        const scoreEl = document.getElementById('listeningScoreVal');
+        scoreEl.textContent = `${listeningScore} / 5`;
+        scoreEl.style.visibility = "visible";
+
+        const cnt = document.getElementById('listeningCount');
+        if (cnt) cnt.textContent = 0;
+    }
+
+    // === Recording helpers & controls ===
+    function stopTTSIfSpeaking() {
+        try { if (synthesis && synthesis.speaking) synthesis.cancel(); } catch (e) {}
+    }
+
+    function getSupportedMimeType() {
+        const types = [
+            'audio/webm;codecs=opus',
+            'audio/ogg;codecs=opus',
+            'audio/webm',
+            'audio/ogg'
+        ];
+        for (const t of types) {
+            if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) return t;
+        }
+        return '';
+    }
+
+    function mimeTypeToExt(mt) {
+        if (!mt) return 'webm';
+        if (mt.includes('ogg')) return 'ogg';
+        if (mt.includes('webm')) return 'webm';
+        return 'webm';
+    }
+
+    function updateRecordingUI({ status }) {
+        const badge = document.getElementById('recStatus');
+        const btnStart = document.getElementById('btnStartRec');
+        const btnStop  = document.getElementById('btnStopRec');
+        const btnPlay  = document.getElementById('btnPlayRec');
+        const btnDown  = document.getElementById('btnDownRec');
+        const audioEl  = document.getElementById('userRecordingAudio');
+
+        if (!badge || !btnStart || !btnStop || !btnPlay || !btnDown || !audioEl) return;
+
+        if (status === 'recording') {
+            badge.textContent = 'Recording…';
+            badge.classList.add('live');
+            btnStart.disabled = true;
+            btnStop.disabled  = false;
+            btnPlay.disabled  = true;
+            btnDown.disabled  = true;
+        } else if (status === 'stopped') {
+            badge.textContent = 'Ready';
+            badge.classList.remove('live');
+            btnStart.disabled = false;
+            btnStop.disabled  = true;
+            btnPlay.disabled  = !recordedUrl;
+            btnDown.disabled  = !recordedUrl;
+            if (recordedUrl) audioEl.src = recordedUrl;
+        } else { // idle
+            badge.textContent = 'Idle';
+            badge.classList.remove('live');
+            btnStart.disabled = false;
+            btnStop.disabled  = true;
+            btnPlay.disabled  = !!recordedUrl ? false : true;
+            btnDown.disabled  = !!recordedUrl ? false : true;
+            if (recordedUrl && audioEl.src !== recordedUrl) audioEl.src = recordedUrl;
+        }
+    }
+
+    async function startUserRecording() {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+                alert('Recording is not supported in this browser. Please try the latest Chrome, Edge, or Firefox.');
+                return;
+            }
+            if (recording) return;
+
+            stopTTSIfSpeaking();
+            stopAudio();
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recordedChunks = [];
+            const mime = getSupportedMimeType();
+            mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+
+            mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                recordedBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                if (recordedUrl) URL.revokeObjectURL(recordedUrl);
+                recordedUrl = URL.createObjectURL(recordedBlob);
+                updateRecordingUI({ status: 'stopped' });
+                try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+            };
+
+            mediaRecorder.start();
+            recording = true;
+            updateRecordingUI({ status: 'recording' });
+        } catch (err) {
+            console.error(err);
+            alert('Microphone access was blocked. Please allow microphone permissions and try again.');
+            updateRecordingUI({ status: 'idle' });
+        }
+    }
+
+    function stopUserRecording() {
+        try {
+            if (mediaRecorder && recording) {
+                mediaRecorder.stop();
+                recording = false;
+            }
+        } catch (e) {
+            console.error(e);
+            updateRecordingUI({ status: 'idle' });
+        }
+    }
+
+    function playUserRecording() {
+        if (!recordedUrl) { alert('No recording available yet. Please record first.'); return; }
+        stopTTSIfSpeaking();
+        const audio = document.getElementById('userRecordingAudio');
+        audio.src = recordedUrl;
+        audio.play();
+    }
+
+    function downloadUserRecording() {
+        if (!recordedBlob) { alert('No recording available yet.'); return; }
+        const a = document.createElement('a');
+        const ext = mimeTypeToExt(recordedBlob.type);
+        a.href = recordedUrl;
+        a.download = `reading_recording_${new Date().toISOString().replace(/[:.]/g,'-')}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+</body>
+</html>
