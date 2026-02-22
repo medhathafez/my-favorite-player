@@ -643,21 +643,27 @@
         }
     }
 
-    function speak(text) {
-        if (synthesis.speaking) synthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ar-SA';
-        utterance.rate = speechRate;
-        synthesis.speak(utterance);
+    window.currentUtterance = null; // هام لأجهزة أبل لمنع توقف الصوت
+
+function speak(text) {
+    if (typeof recording !== 'undefined' && recording) return; // منع النطق أثناء التسجيل
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // إيقاف أي نطق سابق
+        
+        // استخدام Timeout قصير يحل مشكلة التخطي والتكرار في أجهزة Apple
+        setTimeout(() => {
+            window.currentUtterance = new SpeechSynthesisUtterance(text);
+            window.currentUtterance.lang = 'ar-SA'; // تحديد اللغة صراحة
+            window.currentUtterance.rate = 0.85; // سرعة مناسبة للتعلم
+            window.speechSynthesis.speak(window.currentUtterance);
+        }, 50);
     }
-    
-    function speakQuestion(text) {
-        if (synthesis.speaking) synthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ar-SA';
-        utterance.rate = 0.7; // Slower for clarity
-        synthesis.speak(utterance);
-    }
+}
+
+function speakQuestion(text) {
+    if (typeof recording !== 'undefined' && recording) return; 
+    speak(text);
+}
     
     function playListeningAudio() {
         if (synthesis.speaking) synthesis.cancel();
@@ -1525,39 +1531,40 @@
     }
 
     async function startUserRecording() {
-        try {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
-                alert('Recording is not supported in this browser. Please try the latest Chrome, Edge, or Firefox.');
-                return;
-            }
-            if (recording) return;
-
-            stopTTSIfSpeaking();
-            stopAudio();
-
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            recordedChunks = [];
-            const mime = getSupportedMimeType();
-            mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
-
-            mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size) recordedChunks.push(e.data); };
-            mediaRecorder.onstop = () => {
-                recordedBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-                if (recordedUrl) URL.revokeObjectURL(recordedUrl);
-                recordedUrl = URL.createObjectURL(recordedBlob);
-                updateRecordingUI({ status: 'stopped' });
-                try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
-            };
-
-            mediaRecorder.start();
-            recording = true;
-            updateRecordingUI({ status: 'recording' });
-        } catch (err) {
-            console.error(err);
-            alert('Microphone access was blocked. Please allow microphone permissions and try again.');
-            updateRecordingUI({ status: 'idle' });
+    try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+            alert('Recording is not supported in this browser. Please try the latest Chrome, Safari, or Edge.');
+            return;
         }
+        if (recording) return;
+
+        // إيقاف أي قراءة آلية فوراً عند بدء التسجيل
+        stopTTSIfSpeaking();
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recordedChunks = [];
+        const mime = getSupportedMimeType();
+        mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+
+        mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            recordedBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+            if (recordedUrl) URL.revokeObjectURL(recordedUrl);
+            recordedUrl = URL.createObjectURL(recordedBlob);
+            updateRecordingUI({ status: 'stopped' });
+            try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        };
+
+        mediaRecorder.start();
+        recording = true; 
+        updateRecordingUI({ status: 'recording' });
+    } catch (err) {
+        console.error(err);
+        alert('Microphone access was blocked. Please allow microphone permissions and try again.');
+        updateRecordingUI({ status: 'idle' });
     }
+}
 
     function stopUserRecording() {
         try {
